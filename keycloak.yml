@@ -13,7 +13,7 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
     volumes:
-      - keycloak-data:/data
+      - keycloak-data:/opt/keycloak/data
     ports:
     - 8080:8080
     - 8443:8443
