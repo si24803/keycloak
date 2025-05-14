@@ -7,7 +7,14 @@ networks:
     ipam:
       config:
         - subnet: "10.0.2.0/24"
+  #db:
+  #  external: false
+  #  driver: overlay
   db:
+    name: postgres-net
+    external: true
+  kong-proxied:
+    external: true
 
 volumes:
   keycloak01-data:
@@ -18,41 +25,42 @@ volumes:
     external: true
 
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: passw0rd
-    networks:
-      - db
-    ports:
-      - 5432:5432
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-    deploy:
-      mode: replicated
-      replicas: 1
-      endpoint_mode: vip
+  #postgres:
+  #  image: postgres:16
+  #  environment:
+  #    POSTGRES_USER: keycloak
+  #    POSTGRES_PASSWORD: passw0rd
+  #  networks:
+  #    - db
+  #  ports:
+  #    - 5432:5432
+  #  volumes:
+  #    - pg-data:/var/lib/postgresql/data
+  #  deploy:
+  #    mode: replicated
+  #    replicas: 1
+  #    endpoint_mode: vip
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0.6
     command: start-dev
     hostname: keycloak
-    ports:
-      - 9080:8080
-      - 9443:8443
-      - 10000:9000
+    # ports:
+      # - 9080:8080
+      # - 9443:8443
+      # - 10000:9000
       # - 7600:7600
     environment:
       KC_CACHE: ispn
       # KC_CACHE_STACK: kubernetes
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: passw0rd
+      KC_DB_PASSWORD: keycloak_pwd123
       KC_PROXY: edge
-      # KC_HOSTNAME: keycloak01
-      # KC_HOSTNAME_PORT: '8000'
+      KC_HOSTNAME: http://localhost:8000/auth
+      #KC_HOSTNAME_PORT: '8000'
+      #KC_HOSTNAME_PATH: '/auth'
       # KEYCLOAK_ADMIN: admin
       # KEYCLOAK_ADMIN_PASSWORD: admin
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -75,55 +83,10 @@ services:
       db:
       keycloak-net:
         # ipv4_address: 10.0.2.10
+      kong-proxied:
 
     # volumes:
     #   - keycloak01-data:/opt/keycloak/data
-
-
-  # keycloak02:
-  #   image: quay.io/keycloak/keycloak:26.0.6
-  #   command: start-dev
-  #   hostname: keycloak02
-  #   # ports:
-  #   #   - 9080:8080
-  #   #   - 9443:8443
-  #   #   - 10000:9000
-  #   #   - 7600:7600
-  #   environment:
-  #     KC_CACHE: ispn
-  #     # KC_CACHE_STACK: kubernetes
-  #     KC_DB: postgres
-  #     KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-  #     KC_DB_USERNAME: keycloak
-  #     KC_DB_PASSWORD: passw0rd
-  #     KC_PROXY: edge
-  #     KC_HOSTNAME: keycloak01
-  #     # KC_HOSTNAME_PORT: '8000'
-  #     # KEYCLOAK_ADMIN: admin
-  #     # KEYCLOAK_ADMIN_PASSWORD: admin
-  #     KC_BOOTSTRAP_ADMIN_USERNAME: admin
-  #     KC_BOOTSTRAP_ADMIN_PASSWORD: admin
-  #     KC_HEALTH_ENABLED: "true"
-  #     KC_METRICS_ENABLED: "true"
-  #     # KC_HOSTNAME: "http://192.168.167.106"
-  #     JGROUPS_DISCOVERY_PROTOCOL: JDBC_PING
-  #     # JGROUPS_DISCOVERY_EXTERNAL_IP: 10.0.2.12
-  #     # JGROUPS_DISCOVERY_PROTOCOL: "DNS_PING"
-  #     # JGROUPS_TRANSPORT_STACK: tcp
-  #     # JGROUPS_DISCOVERY_PROPERTIES: "dns_query=keycloak"
-  #     # DNS_QUERY: tasks.keycloak.net-iam
-  #     JAVA_OPTS_APPEND: "-Djgroups.discovery.protocol=JDBC_PING -Djgroups.bind_addr=GLOBAL -Djgroups.bind_addr=match-address:10.0.2.*"
-  #   deploy:
-  #     mode: replicated
-  #     replicas: 1
-  #     endpoint_mode: vip
-  #   networks:
-  #     db:
-  #     keycloak-net:
-  #       ipv4_address: 10.0.2.12
-
-  #   # volumes:
-  #   #   - keycloak01-data:/opt/keycloak/data
 
   
   
